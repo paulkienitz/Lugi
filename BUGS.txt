@@ -1,0 +1,52 @@
+For DIFFERENCES FROM THE PASCAL VERSION, see:
+https://docs.google.com/document/d/1G9K94phRRP3eqzU9Aw9p5kOjktYI-CtEkFg_UYopUEs/edit?usp=sharing
+
+(also see https://docs.google.com/spreadsheets/d/1QWs3EbM4U4w36e7kyYFkmWsP0aLTMbQ_MpmkjdUBz5o/edit#gid=0 for versions)
+
+SEE TEST CASES SPREADSHEET... https://docs.google.com/spreadsheets/d/1JFzv2OIhr9TBctWZXJZahNbwnbX7xwYFzLAUOAyw8yA/edit?usp=drivesdk
+
+
+        NOT IMPLEMENTED YET:
+
+Hmmm, maybe "kill with", which users are sure to try (later... try to avoid this -- it's not in the spirit).
+
+Add "drink from flask/can".
+
+Add "...plug out" and "...out plug"?  Add "pull plug"?
+
+It would be nice to add "look in bag" or other container, especially if it's not held.
+
+(top ten will need antitampering security if done over web... encrypt locally too?
+eventually, detailed record of game with random seed, all score details, and verifiable hash (let's not have complete command log?))
+
+(Add "spraycans" distinct from "cans"?  *NO*, let's say cans always means spraycans, not all four cans.)
+
+Maybe check biguation of "cans of lysol and flysol"?
+
+
+        GAMEPLAY BUGS:
+
+...Leaving this unfixed: Climb down rope msg should be checked after no way through check.
+
+(TEST new optional 'it'-clearing behavior... later.
+ ..."I don't see any nothing here" probably occurs on multiple verbs besides take.)
+
+(Maybe just change the acetone can to a plastic jug?  That shifts the biguation trouble to "bottle", but it's simpler that way.  Try this with an ifdef?)
+
+********************  COULD NOT REPLICATE -- may have been fixed by AskCommand update, but those fixes don't explain this:
+Said "ct urine" in niche, and AskCommand > Understand said array out of bounds on dictionary[firstletter].
+
+******************** ARRGH hole in floor of cistern!  Gorilla ended up in there??  That should also be impossible.
+Test harness COULD NOT REPLICATE.  What could open hole later?  Can't have been nitro, right?  Not with gorilla there.
+
+(is it bogus for 'all' to not set 'it' as gleeps when they're included?  defensible, I guess)
+
+
+        CODE ISSUES:
+
+(We can further generalize spillage.)
+
+(We could have a universal thingy for checking whether object A can be moved from place B to place C, as a way to unify take and put code.)
+
+For amiga ctrl-C during input waits for enter key.  Bug of Aztec fgets may be unfixable without c.lib source?
+For watcom msdos ctrl-C does not exit the program at all, or maybe that's MS-DOS Player's fault.  Try dosbox?

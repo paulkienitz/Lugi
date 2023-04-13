@@ -1,0 +1,54 @@
+# This makes the adventure game Lugi, using Open Watcom C++ for Windows.
+# The source is mostly generic C, compilable by almost anything.
+# (We alternatively have a script to make with MSVC, and a Visual Stupido project.)
+# Invoke from C source directory with:   wmake -h -f windows\makefile.watcom
+
+.ERASE
+.EXTENSIONS:
+.EXTENSIONS: .obj .c
+
+!ifdef DEBUG
+cdebug = -od -d2 -q -dDEBUG
+ldebug = d w all op q op symf
+!else
+cdebug = -s -q -obhikl+rt -oe=100 -zp8
+# -oa helps slightly but might be dangerous.
+ldebug = op el op q
+!endif
+
+CFLAGS = $(cdebug) -bt=NT -6r -zt -zq -wx
+LFLAGS = $(ldebug) sys NT library shlwapi.lib
+O = windows\ob\     # comment so backslash won't continue the line
+
+ZOB1 = $(O)basics.obj $(O)diction.obj $(O)embassy.obj $(O)player.obj $(O)obey.obj
+ZOB2 = $(O)roomz.obj $(O)take.obj $(O)put.obj $(O)drop.obj $(O)gothere.obj
+ZOB = $(ZOB1) $(ZOB2) $(O)fiddle.obj $(O)upchuck.obj $(O)lugi.obj
+
+windows\Lugi.exe : $(ZOB)
+	wlink $(LFLAGS) name windows\Lugi.exe file { $(ZOB) }
+	-@echo --
+	-@dir windows\Lugi.exe
+
+$(ZOB) : lugi.h
+
+# gah, this make won't do this automatically if not in the same directory:
+$(O)basics.obj  : basics.c
+$(O)diction.obj : diction.c
+$(O)embassy.obj : embassy.c
+$(O)player.obj  : player.c
+$(O)roomz.obj   : roomz.c
+$(O)take.obj    : take.c
+$(O)put.obj     : put.c
+$(O)drop.obj    : drop.c
+$(O)gothere.obj : gothere.c
+$(O)fiddle.obj  : fiddle.c
+$(O)upchuck.obj : upchuck.c
+$(O)obey.obj    : obey.c
+$(O)lugi.obj    : lugi.c
+
+.c.obj :
+	wcc386 $(CFLAGS) $[@ -fo=$@
+
+clean: .SYMBOLIC
+	-del $(O)*.obj windows\Lugi.exe windows\Lugi.sym
+
