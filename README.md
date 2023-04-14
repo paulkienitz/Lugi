@@ -26,7 +26,7 @@ This page is included in the repo as play.html in the emscripten folder.
 That page's content is similar to the About the Game section you are now reading.)
 _Be aware that refreshing that page restarts the game._
 
-I am hosting a playable version of this page **(here)[http://paulkienitz.net/Lugi/play.html]**.
+I am hosting a playable version of this page **[here](http://paulkienitz.net/Lugi/play.html)**.
 
 The source code is designed to be easily ported to any platform old or new, though it will not fit in something like a Commodore 64 — an 8088 PC is probably about as primitive as you’d want to go.
 It’s written in C, though the eighties original was in Pascal.
