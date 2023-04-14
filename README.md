@@ -1,7 +1,7 @@
 # Lugi
 ### an old text adventure game from the eighties, revived
 
-## About the Game
+## > About the Game
 
 Lugi is a text adventure game written way back in 1980-81 by me and my friend Jay Wilson, who started the project.
 For those who don’t know, text adventures are an ancient genre of computer game which has no graphics.
@@ -32,12 +32,12 @@ Much of the C translation was done in the early nineties, but it wasn’t finish
 I will ask that you please don’t read the source code just to figure out the tricks in the game.
 Lots of players back then discovered them through gameplay (it was pretty popular), and one or two even outplayed me at it.
 
-## About the Code
+## > About the Code
 
-The basic design idea of the source archive is that everything is platform-independent, except for a primitive layer in the file basics.c, and a few conditionals in the lugi.h include file.
-In basics.c we actually redefine some familiar stdio functions to pass them through our own output stream, which knows how to check the window it's running in for width, height, and ANSI color support.
+The basic design idea of the source archive is that everything is platform-independent, except for a primitive layer in the file `basics.c`, and a few conditionals in the `lugi.h` include file.
+In `basics.c` we actually redefine some familiar stdio functions to pass them through our own output stream, which knows how to check the window it's running in for width, height, and ANSI color support.
 These checks are specific to each targeted platform.
-With this knowledge, it word-wraps the text to fit the current width, and uses "-- MORE --" prompts to break up output taller than the current height.
+With this knowledge, it word-wraps the text to fit the current width, and uses "`-- MORE --`" prompts to break up output taller than the current height.
 In the case of the web target, the actual IO does not go through stdio at all, but through JavaScript functions.
 
 Each target platform has a subdirectory in the source archive, but these do not contain any .c or .h source files.
@@ -48,9 +48,9 @@ The windows folder has a batch script for MSVC, a makefile for Open Watcom, and 
 (It also has a batch script for TCC, but this is currently broken as it does not support the Windows APIs needed for console analysis.)
 The msdos folder only supports Open Watcom (another compiler was there in the past but is long gone).
 The amiga folder only supports Manx Aztec C, not SAS/C.
-Finally, the emscripten folder supports emcc with a shell script, which produces a Lugi.wasm module accompanied by a Lugi.js wrapper.
+Finally, the emscripten folder supports emcc with a shell script, which produces a `Lugi.wasm` module accompanied by a `Lugi.js` wrapper.
 
 Each folder also has an executable in the repo.
 In the case of the windows folder, this was produced with the MSVC script.
-In the case of the unix folder, this was produced with the clang script, with the implicit target being x86_64-pc-linux-gnu.
-(A target of aarch64-unknown-linux-android24 has also been tested.)
+In the case of the unix folder, this was produced with the clang script, with the implicit target being `x86_64-pc-linux-gnu`.
+(A target of `aarch64-unknown-linux-android24` has also been tested.)
