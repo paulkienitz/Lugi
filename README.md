@@ -61,10 +61,15 @@ In the case of the unix folder, this was produced with the clang script, with th
 Each executable attempts to load and save high scores in a file within its own home directory.
 In some cases on legacy platforms, it may be unable to determine this directory.
 If this fails in MS-DOS I’m not sure where it might end up — the user’s current directory, maybe.
-If this fails on the Amiga it will use the `S:` folder, where assorted scripts and configuration files are stored.
+If this fails on the Amiga it will use the S: folder, where assorted scripts and configuration files are commonly stored.
+
+In the case of the web build, high scores are currently stored in a persistent cookie, which is a rather fragile location.
+A way to organize scores online for multiple users has not been worked out yet.
+The Unix and Windows builds can show scores by different usernames sharing the computer, but in practice most are going to be single user.
 
 If targeting another platform not yet covered, the unix version is probably what you should start from, as any system with POSIX stdio should support most of what Lugi does.
 It should be pretty close to working in MacOS, for instance.
 
 At some point I will publicize the original Pascal source, but that has not been preserved digitally except as a snapshot of an unfinished version.
 The only known copy of the final version is a paper printout I have in a box, which is covered with pencil notes.
+Someday I’d like to get that version uploaded.
