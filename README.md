@@ -32,6 +32,7 @@ You may have to tap the display to make the virtual keyboard appear.
 
 I am hosting a playable version of this page **[here](http://paulkienitz.net/Lugi/play.html)**.
 _Be aware that refreshing that page restarts the game._
+It requires a modern browser to run — in particular, the JavaScript engine _must_ support the `async` key word in order to read the user’s commands.
 
 The source code is designed to be easily ported to any platform old or new, though it probably will not fit in something like a Commodore 64 — an 8088 PC is about as primitive as you’d want to go.
 It’s written in C, though the eighties original was in Pascal.
@@ -54,9 +55,10 @@ In some cases, more than one compiler is supported.
 * The unix folder has simple shell scripts to build with gcc, with clang, or with tcc.
 * The windows folder has a batch script for MSVC, a makefile for Open Watcom, and a Visual Stupido project.
 (It also has a batch script for TCC, but this is currently broken as it does not support the Windows APIs needed for console analysis.)
-* The msdos folder only supports Open Watcom (another compiler was there in the past but is long gone).
-* The amiga folder only supports Manx Aztec C, not SAS/C.
+* The msdos folder only supports Open Watcom with a makefile (another compiler was there in the past but is long gone).
+* The amiga folder only supports Manx Aztec C (sorry, no SAS/C) with a makefile.
 * Finally, the emscripten folder supports emcc with a shell script, which produces a `Lugi.wasm` module accompanied by a `Lugi.js` wrapper.
+There’s also a batch script for those who install emcc in Windows (which is not a practice I would recommend).
 
 Each folder also has an executable in the repo.
 In the case of the windows folder, this was produced with the MSVC script.
@@ -74,6 +76,7 @@ The Unix and Windows builds can show scores by different usernames sharing the c
 
 If targeting another platform not yet covered, the unix version is probably what you should start from, as any system with POSIX stdio should support most of what Lugi does.
 It should be pretty close to working in MacOS, for instance.
+But the whole idea of running it from a command line instead of on the web can pretty much be considered as a form of legacy support nowadays.
 
 At some point I will publicize the original Pascal source, but that has not been preserved digitally except as a snapshot of an unfinished version.
 The only known copy of the final version is a paper printout I have in a box, which is covered with pencil notes.
