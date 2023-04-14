@@ -24,11 +24,16 @@ So I made a web page that emulates a primitive scrolling text display like we us
 This page is included in the repo as play.html in the emscripten folder.
 (The page referenced by the "about the game" link in it is not included.
 That page's content is similar to the About the Game section you are now reading.)
-_Be aware that refreshing that page restarts the game._
+You can resize this page and the text display will expand or shrink (within reasonable limits) to fit it.
+If the game produces lengthy output that doesn't fit, it will pause and display “`-- MORE --`” at the bottom in inverse colors.
+If this happens, just press any key once you are ready to read the rest.
+When viewed on a phone, the font may be rather small, but hopefully is still readable enough.
+You may have to tap the display to make the virtual keyboard appear.
 
 I am hosting a playable version of this page **[here](http://paulkienitz.net/Lugi/play.html)**.
+_Be aware that refreshing that page restarts the game._
 
-The source code is designed to be easily ported to any platform old or new, though it will not fit in something like a Commodore 64 — an 8088 PC is probably about as primitive as you’d want to go.
+The source code is designed to be easily ported to any platform old or new, though it probably will not fit in something like a Commodore 64 — an 8088 PC is about as primitive as you’d want to go.
 It’s written in C, though the eighties original was in Pascal.
 Much of the C translation was done in the early nineties, but it wasn’t finished then.
 I will ask that you please don’t read the source code just to figure out the tricks in the game.
