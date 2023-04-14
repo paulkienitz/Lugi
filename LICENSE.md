@@ -1,4 +1,4 @@
-Three-clause BSD-like license with Commons Clause (no commercial use) and simplified disclaimer:
+# Three-clause BSD-like license with Commons Clause (no commercial use) and simplified disclaimer:
 
 "Lugi" is Copyright (c) 1980, 1981, 2023 by Jay A. Wilson and Paul M. Kienitz
 All rights reserved.
