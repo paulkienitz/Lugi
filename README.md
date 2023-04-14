@@ -60,3 +60,9 @@ Each executable attempts to load and save high scores in a file within its own h
 In some cases on legacy platforms, it may be unable to determine this directory.
 If this fails in MS-DOS I’m not sure where it might end up — the user’s current directory, maybe.
 If this fails on the Amiga it will use the `S:` folder, where assorted scripts and configuration files are stored.
+
+If targeting another platform not yet covered, the unix version is probably what you should start from, as any system with POSIX stdio should support most of what Lugi does.
+It should be pretty close to working in MacOS, for instance.
+
+At some point I will publicize the original Pascal source, but that has not been preserved digitally except as a snapshot of an unfinished version.
+The only known copy of the final version is a paper printout I have in a box, which is covered with pencil notes.
