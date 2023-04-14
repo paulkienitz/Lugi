@@ -32,7 +32,7 @@ You may have to tap the display to make the virtual keyboard appear.
 
 I am hosting a playable version of this page **[here](http://paulkienitz.net/Lugi/play.html)**.
 _Be aware that refreshing that page restarts the game._
-It requires a modern browser to run — in particular, the JavaScript engine must support the `async` key word in order to read the user’s commands.
+It requires a modern browser to run — in particular, the JavaScript engine must support the `async` key word, which wasn’t standardized until 2017, in order to read the user’s commands.
 
 The source code is designed to be easily ported to any platform old or new, though if you’re interested in a retro platform it probably will not fit in something like a Commodore 64 or a CP/M system — an 8088 PC is about as primitive as you’d want to go.
 It’s written in C, though the eighties original was in Pascal.
@@ -82,3 +82,5 @@ But the whole idea of running it from a command line instead of on the web can p
 At some point I will publicize the original Pascal source, but that has not been preserved digitally except as a snapshot of an unfinished version.
 The only known copy of the final version is a paper printout I have in a box, which is covered with pencil notes.
 Someday I’d like to get that version uploaded.
+
+Released to the public April 14, 2023.
