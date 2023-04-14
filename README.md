@@ -34,7 +34,7 @@ I am hosting a playable version of this page **[here](http://paulkienitz.net/Lug
 _Be aware that refreshing that page restarts the game._
 It requires a modern browser to run — in particular, the JavaScript engine must support the `async` key word in order to read the user’s commands.
 
-The source code is designed to be easily ported to any platform old or new, though it probably will not fit in something like a Commodore 64 — an 8088 PC is about as primitive as you’d want to go.
+The source code is designed to be easily ported to any platform old or new, though it probably will not fit in something like a Commodore 64 or a CP/M system — an 8088 PC is about as primitive as you’d want to go.
 It’s written in C, though the eighties original was in Pascal.
 Much of the C translation was done in the early nineties, but it wasn’t finished then.
 I will ask that you please don’t read the source code just to figure out the tricks in the game.
