@@ -31,3 +31,10 @@ msdos/OBS
 msdos/PCC-MAK1.BAT
 msdos/PCC-MAKE.BAT
 windows/Lugi.ilk
+windows/x64/
+*.err
+amiga/iconical.iff
+experimental/
+emscripten/playx.php
+windows/icon-from-Amiga-64px.png
+windows/icon-from-Amiga.png

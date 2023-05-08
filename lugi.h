@@ -42,6 +42,13 @@ typedef unsigned int uint32;
 #  define RRand32 RRand
 #endif
 
+// the original intent was to limit names to 64 chars; we allow extra for multibyte users
+#ifdef __EMSCRIPTEN__
+#  define USERNAMELEN 256
+#else
+#  define USERNAMELEN 128
+#endif
+
 typedef short bool;
 #define false 0
 #define true 1

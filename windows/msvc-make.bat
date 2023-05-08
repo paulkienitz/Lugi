@@ -1,4 +1,4 @@
-@rem build Lugi for Windows command line with MSVC
+@rem Build Lugi for Windows command line with MSVC... used for official release.
 @echo off
 if "%LIBPATH%" == "" (
     echo Run this in a VS Developer Command Prompt window.

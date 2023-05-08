@@ -243,7 +243,7 @@ PUBLIC bool CreateDictionary(void)     /* call this during initialization */
             return false;
         }
         while (*w) {
-            for (ww = w; *ww > ' '; ww++) ;
+            for (ww = w; (unsigned) *ww > ' '; ww++) ;
             wrd = malloc(ww + 1 - w);
             strncpy(wrd, w, ww - w);
             wrd[ww - w] = '\0';

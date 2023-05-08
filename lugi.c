@@ -58,9 +58,9 @@ import str format32(int32 v);
 
 
 typedef struct {
-    int32  howmuch;
+    int32     howmuch;
     struct tm when;
-    char   who[64];
+    char      who[USERNAMELEN];
 } Score;
 
 private int32 totalscore = 0;
@@ -162,7 +162,8 @@ private str ReadScore(str line, Score *result)
     int r;
     long h;
     memset(result, 0, sizeof(Score));
-    // expect a decimal score followed by a timestamp in ISO format without timezone, then a pipe separator
+    // expect each line to be a signed decimal score, a space, then a timestamp in ISO format without timezone, then
+    // a space and a pipe separator followed by an optional username, which we limit to 64 chars after trimming spaces
     r = sscanf(line, "%ld %u-%u-%uT%u:%u:%u |",
                &h, &result->when.tm_year, &result->when.tm_mon, &result->when.tm_mday,
                &result->when.tm_hour, &result->when.tm_min, &result->when.tm_sec);
@@ -179,8 +180,8 @@ private str ReadScore(str line, Score *result)
     line = b;
     if (a) {
         while (*a == ' ' && a < line) a++;
-        while (b[-1] <= ' ' && b > a) b--;
-        if (b >= a + 64) b = a + 63;
+        while ((unsigned) b[-1] <= ' ' && b > a) b--;
+        if (b >= a + USERNAMELEN) b = a + USERNAMELEN - 1;  // if name is overlong, score file was corrupted
         strncpy(result->who, a, b - a);
         result->who[b - a] = '\0';
     }
@@ -190,6 +191,7 @@ private str ReadScore(str line, Score *result)
 
 private str WriteScore(str buf, Score *tosave)
 {
+    // "never" timestamps are written as 1900-01-01T00:00:00
     int cc = sprintf(buf, "%ld %04u-%02u-%02uT%02u:%02u:%02u |%s\n",
                      (long) tosave->howmuch, tosave->when.tm_year + 1900, tosave->when.tm_mon + 1, tosave->when.tm_mday + !tosave->when.tm_mday,
                      tosave->when.tm_hour, tosave->when.tm_min, tosave->when.tm_sec, tosave->who);
@@ -220,7 +222,6 @@ private int InsertScore(Score *scoreset, int scorecount, Score *current)
 #endif       // one compiler messes up unless this has blank lines around it!
 
     // alternative is suitable for single-user-ish use, where one person might want to see a history of scores
-    // (...a version suitable for public web use has yet to be figured out)
     for (p = scorecount; p > 0 && scoreset[p - 1].howmuch < current->howmuch; p--)
         ;
     if (p >= scorecount) return -1;     // the user's score was below the bottom one in the list
@@ -231,26 +232,24 @@ private int InsertScore(Score *scoreset, int scorecount, Score *current)
 }
 
 
-private void TopTen(int32 currentscore)
+// This is suitable for small installations where simultaneous players are unusual.
+private void SaveTopTenLocally(int currentscore, struct tm now,
+                               int32 *yearplace, int32 *alltimeplace, int32 *bottomplace,
+                               Score *topyear, Score *topalltime, Score *bottom)
 {
-    import str LoadScoreFile(void), SaveScoreFile(str contents), UserName(void);
-    import int Width(void);
-    Score topyear[10], topalltime[3], bottom;
+    import str LoadScoreFile(void), UserName(void);
+    import void SaveScoreFile(str contents);
     Score current;
-    time_t t = time(null);
-    int i, j, yearplace, alltimeplace, bottomplace = -1;
-    char a;
-    static char outbuf[2048];   // we don't have much stack in some old platforms
+    int i, j;
+    static char outbuf[4096];   // we don't have much stack in some old platforms
     str scores, out = outbuf;
 
     current.howmuch = currentscore;
-    current.when = *localtime(&t);
-    strcpy(current.who, UserName());
+    current.when = now;
+    strcpy(current.who, UserName());  // will not return oversize result
 
-    memset(&topyear, 0, sizeof(topyear));
-    memset(&topalltime, 0, sizeof(topalltime));
-    memset(&bottom, 0, sizeof(bottom));
     if ((scores = LoadScoreFile())) {
+        // the score file contains fourteen lines: top ten for year, top three all time, and bottom 
         for (i = j = 0; i < 10; i++, j++) {
             scores = ReadScore(scores, topyear + j);
             if (mktime(&current.when) - mktime(&topyear[j].when) > (time_t) 86400 * (time_t) 365)
@@ -260,22 +259,80 @@ private void TopTen(int32 currentscore)
             memset(topyear + j, 0, sizeof(Score));
         for (i = 0; i < 3; i++)
             scores = ReadScore(scores, topalltime + i);
-        ReadScore(scores, &bottom);
+        ReadScore(scores, bottom);
     }
 
-    yearplace = InsertScore(topyear, 10, &current);
-    alltimeplace = InsertScore(topalltime, 3, &current);
-    if (currentscore < bottom.howmuch && !cheated)
-        bottomplace = 0, bottom = current;
+    *yearplace = InsertScore(topyear, 10, &current);
+    *alltimeplace = InsertScore(topalltime, 3, &current);
+    *bottomplace = -1;
+    if (currentscore < bottom[0].howmuch && !cheated)
+        *bottomplace = 0, bottom[0] = current;
     for (i = 0; i < 10; i++)
         out = WriteScore(out, topyear + i);
     for (i = 0; i < 3; i++)
         out = WriteScore(out, topalltime + i);
-    WriteScore(out, &bottom);
+    WriteScore(out, bottom);
     SaveScoreFile(outbuf);
+}
+
+
+private void SaveTopTenToServer(int currentscore, struct tm now,
+                                int32 *yearplace, int32 *alltimeplace, int32 *bottomplace,
+                                Score *topyear, Score *topalltime, Score *bottom)
+{
+    import bool WillScoreNeedUserName(int score);
+    import void RememberUserName(str username), GetLine(str prompt, str line12);
+    import str GetScoresFromDatabaseAfterUpdate(str who, struct tm when, int32 howmuch, int32 *yearplace, int32 *alltimeplace, int32 *bottomplace);
+    import str UserName(void);
+    import char line1[];
+    str scores, un = UserName(), qq = "\nWhat name should I use for your high score?  ";
+    int i;
+
+    if (!un || !*un)
+        if (!WillScoreNeedUserName(currentscore))
+	    un = "(anonymous)";       // allow low scorers to hide their shame
+	else {
+            do
+                // XXX array index out of bounds in readToBufferFromSimulatedTerminal?  not replicating
+                for (GetLine(qq, un = line1); *un && (unsigned) *un <= ' '; un++) ;
+            while (!*un);
+            RememberUserName(un);
+        }
+    scores = GetScoresFromDatabaseAfterUpdate(un, now, currentscore, yearplace, alltimeplace, bottomplace);
+    for (i = 0; i < 10; i++)
+        scores = ReadScore(scores, topyear + i);
+    for (i = 0; i < 3; i++)
+        scores = ReadScore(scores, topalltime + i);
+    ReadScore(scores, bottom);
+}
+
+
+private void TopTen(int32 currentscore)
+{
+    import bool ScoreDatabaseAvailable();
+    import int Width(void);
+    Score topyear[10], topalltime[3], bottom[1];
+    time_t t = time(null);
+    struct tm now;
+    int32 yearplace, alltimeplace, bottomplace;
+    int i;
+    char a;
+
+    now = *localtime(&t);
+    memset(&topyear, 0, sizeof(topyear));
+    memset(&topalltime, 0, sizeof(topalltime));
+    memset(&bottom, 0, sizeof(bottom));
+
+    if (ScoreDatabaseAvailable())
+        SaveTopTenToServer(cheated ? currentscore + 10000000 : currentscore, now,
+                           &yearplace, &alltimeplace, &bottomplace,
+                           topyear, topalltime, bottom);
+    else
+        SaveTopTenLocally(currentscore, now, &yearplace, &alltimeplace, &bottomplace,
+                          topyear, topalltime, bottom);
 
     if (alltimeplace == 0 && currentscore >= 1000 && Width() >= 78)
-        puts("\nW*O*W!!!!    YOUR SCORE IS THE\a\n\
+        putsEvent("\nW*O*W!!!!    YOUR SCORE IS THE\a\n\
    @      @         @                   @@@@@@@    @@@@@    @     @   @@@@@@@\n\
   @ @     @         @                      @         @      @@   @@   @\n\
  @   @    @         @                      @         @      @ @ @ @   @\n\
@@ -291,18 +348,18 @@ private void TopTen(int32 currentscore)
 @     @      @      @    @@@   @     @   @               @      @       ##\n\
 @     @      @       @     @   @     @   @         @     @      @\n\
 @     @    @@@@@      @@@@@    @     @   @@@@@@@    @@@@@       @       ##\a\n\n");
-    else if (alltimeplace == 0 && currentscore >= 500)
-        puts("\nW*O*W!!!!    YOUR SCORE IS THE ALL-TIME HIGHEST!");
+    else if (alltimeplace == 0 && currentscore >= 1000)
+        putsEvent("\nW*O*W!!!!    YOUR SCORE IS THE ALL-TIME HIGHEST!");
+    else if (alltimeplace == 0)
+        putsEvent("\nWOW, your score is the highest so far!");
     else if (alltimeplace > 0)
-        puts("\nWOW, you've got one of the top three scores of all time!");
+        putsEvent("\nWOW, you've got one of the top three scores of all time!");
     else if (yearplace >= 0)
-        puts("\nHey, you've made it onto the list of the top ten high scores of the last year!");
-#ifdef ONE_SCORE_PER_PERSON
+        putsEvent("\nHey, you've made it onto the list of the top ten high scores of the last year!");
     else if (yearplace < -1)
-        puts("\nThat would have made it into the top ten, but it's not your best score.");
-#endif
+        putsEvent("\nThat would have made it into the top ten, but it's not your best score.");
     else if (bottomplace >= 0)
-        puts("\nCONGRATULATIONS!!  You have achieved the lowest score of all time!");
+        putsEvent("\nCONGRATULATIONS!!  You have achieved the lowest score of all time!");
     if ((currentscore > 0 && bottomplace < 0 && yearplace < 0) || cheated) {
         a = GetLetter("Ya wanna see the high score list?  ");
         if (a == 'y') bottomplace = 1;
@@ -320,7 +377,7 @@ private void TopTen(int32 currentscore)
     for (i = 0; i < 3; i++)
         DisplayScore(topalltime + i);
     putchar('\n');
-    DisplayScore(&bottom);
+    DisplayScore(bottom);
 }
 
 
@@ -479,7 +536,7 @@ people of the city are quite annoyed at you.");
         else sprintf(enemeez, undealtwith == 1 ? "one live alien entity" : "%d live alien entities", undealtwith);
         printf("(You left behind %s%s%s.)\n\n", obz, missed && undealtwith ? " and " : "", enemeez);
     }
-    RateScore(cheated ? totalscore + 10000000 : totalscore);
+    RateScore(!cheated ? totalscore : totalscore + 10000000);
     TopTen(totalscore);
 }
 

@@ -51,4 +51,3 @@ $(O)lugi.obj    : lugi.c
 
 clean: .SYMBOLIC
 	-del $(O)*.obj windows\Lugi.exe windows\Lugi.sym
-

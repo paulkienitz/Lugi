@@ -3,11 +3,11 @@
    contains system dependent stuff.  Note that we do not include stdio.h
    in any other source files; they use only functions defined here. */
 
-/* Define AMIGA when the target machine is a commodore Amiga.  (This is
-   automatic with Aztec C.)  Create other ifdefs as necessary for
-   sections specific to other machines, if you port this.  Define CRLF for
-   machines that need \r\n for newline.  To deactivate the --More -- pausing
-   feature, use a do-nothing function for CheckWindowSize. */
+/* Define AMIGA, WINDOWS, etc to select code here for a target platform.
+   Create other ifdefs as necessary for sections specific to other machines,
+   if you port this.  Define CRLF for machines that need \r\n for newline.
+   To deactivate the --More -- pausing feature, use a do-nothing function
+   for CheckWindowSize. */
 
 #include <string.h>
 #include <stdlib.h>
@@ -24,7 +24,9 @@
 
 #ifdef AMIGA
    // Note that the compiler should target AmigaDOS 1.x on a plain 68k, as 1.x was
-   // probably sold on the majority of computers and most of them still have old roms.
+   // probably sold on the majority of computers and most of them still have old roms. 
+   // Also note that sometimes there are blank lines around #ifs and #endifs, due to
+   // a bug in Aztec C that can fail to match them... somehow this is a workaround.
 #  include <exec/io.h>
 #  include <devices/conunit.h>
 #  include <libraries/dosextens.h>
@@ -35,17 +37,21 @@
 #if (defined(_WIN32) || defined(_WIN64) || defined(__WINDOWS_386__)) && !defined(WINDOWS)
 #  define WINDOWS
 #endif
+
 #ifdef WINDOWS
 #  include <conio.h>
 #  include <windows.h>
 #  include <shlwapi.h>
-   // Open Watcom 1.9 has a somewhat outdated windows.h, and tcc has a reduced one
+#  pragma comment(lib, "Shlwapi.lib")   // somehow helps Visual Stupido, not needed for raw MSVC
+
+   // Open Watcom 1.9 has a somewhat outdated windows.h, and tcc has a reduced one:
 #  ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
 #    define ENABLE_VIRTUAL_TERMINAL_PROCESSING  0x0004
 #  endif
 #  ifdef __WATCOMC__
 import DWORD WINAPI GetConsoleProcessList(LPDWORD, DWORD);
 #  endif
+
 #  define CRLF
 #endif
 
@@ -76,15 +82,22 @@ EM_JS(void, writeToSimulatedTerminal, (str msg), { \
 EM_JS(void, writeBufferToSimulatedTerminal, (str msg, int maxChars), { \
         say(UTF8ToString(msg, maxChars)); \
     })
-EM_JS(void, setCssClassOnSimulatedTerminal, (str cssclass), { \
+EM_JS(void, setColorOnSimulatedTerminal, (str cssclass), { \
         setClassOfSaying(UTF8ToString(cssclass)); \
     })
-EM_JS(void, writeToLocalStorage, (str name, str contents), { \
-        setCookie(UTF8ToString(name), UTF8ToString(contents), 365 * 5); \
+EM_JS(void, writeScoresToLocalStorage, (str contents), { \
+        setPersistentCookie("scores", UTF8ToString(contents)); \
     })
-EM_JS(void, readToBufferFromLocalStorage, (str name, str buf, int blen), { \
-        var result = getCookie(UTF8ToString(name)); \
-        stringToUTF8(result || "", buf, blen); \
+EM_JS(void, readScoresToBufferFromLocalStorage, (str buf, size_t blen), { \
+        var contents = getCookie("scores"); \
+        stringToUTF8(contents || "", buf, blen); \
+    })
+EM_JS(void, cacheUserNameInLocalStorage, (str name), { \
+        setPersistentCookie("playername", UTF8ToString(name)); \
+    })
+EM_JS(void, getCachedUserNameFromLocalStorage, (str buf, size_t blen), { \
+        var contents = getCookie("playername"); \
+        stringToUTF8(contents || "", buf, blen); \
     })
 EM_JS(void, promptForMoreOnSimulatedTerminal, (), { \
         promptForMore(); \
@@ -92,7 +105,7 @@ EM_JS(void, promptForMoreOnSimulatedTerminal, (), { \
 EM_JS(void, makeANoise, (), { \
         beep(); \
     })
-EM_JS(void, logToConsole, (str label, str val), { \
+EM_JS(void, logToBrowserConsole, (str label, str val), { \
         console.log(UTF8ToString(label) + " " + UTF8ToString(val)); \
     })        // for integer values use format32
 EM_JS(int, getConsoleWidth, (), { \
@@ -104,12 +117,36 @@ EM_JS(int, getConsoleHeight, (), { \
 EM_JS(void, gameHasEnded, (), { \
         quit(); \
     })
-EM_ASYNC_JS(void, readToBufferFromSimulatedTerminal, (str prompt, str buf, int blen), { \
-        var result = await ask(UTF8ToString(prompt)); \
-        stringToUTF8(result || "", buf, blen); \
+
+EM_ASYNC_JS(void, readToBufferFromSimulatedTerminal, (str prompt, str buf, size_t blen), { \
+        var userInput = await ask(UTF8ToString(prompt)); \
+        stringToUTF8(userInput || "", buf, blen); \
     })
 EM_ASYNC_JS(void, waitForKeypressAndClearMorePrompt, (), { \
         await waitForKeypressAndClearPrompt(); \
+    })
+EM_ASYNC_JS(bool, checkDatabaseAccess, (), { \
+        return await testDatabaseAccess(); \
+    })
+EM_ASYNC_JS(bool, checkIfUserNameNeeded, (int score), { \
+        return await doesScoreNeedName(score); \
+    })
+EM_ASYNC_JS(void, saveToServerReturningScoresToBuffer, (str who, int y, int m, int d, int h, int n, int s, int32 howmuch, \
+                                                        str buf, size_t blen, int32 *yearpos, int32 *alltimepos, int32 *bottompos), { \
+        var scoreState = await saveToServerAndGetScores(UTF8ToString(who), y, m, d, h, n, s, howmuch); \
+        if (scoreState && scoreState.formattedScores) { \
+            stringToUTF8(scoreState.formattedScores, buf, blen); \
+            HEAP32[yearpos >> 2]    = scoreState.yearpos; \
+            HEAP32[alltimepos >> 2] = scoreState.alltimepos; \
+            HEAP32[bottompos >> 2]  = scoreState.bottompos; \
+            setPersistentCookie("scores", scoreState.formattedScores); \
+        } else { \
+            var backedUpScoresInCaseOfOutage = getCookie("scores"); \
+            stringToUTF8(backedUpScoresInCaseOfOutage || "", buf, blen); \
+            HEAP32[yearpos >> 2]    = -1; \
+            HEAP32[alltimepos >> 2] = -1; \
+            HEAP32[bottompos >> 2]  = -1; \
+        } \
     })
 #endif
 
@@ -579,7 +616,7 @@ private void nextColorImmediate()
         fprintf(stdout, "\x1B[%sm", nextColor);
     }
 #else
-    setCssClassOnSimulatedTerminal(nextColor);
+    setColorOnSimulatedTerminal(nextColor);
 #endif
 }
 
@@ -884,7 +921,7 @@ PUBLIC void printfDebug(const char *f, ...)
 
 PUBLIC void GetLine(str prompt, str line12)
 {
-    int32 i;
+    size_t i;
 #ifndef __EMSCRIPTEN__
     linesout = 0;          // assume the prompt will fit on one line, don't go More right before it
     put(prompt);
@@ -901,7 +938,7 @@ PUBLIC void GetLine(str prompt, str line12)
     colorCommand();
     useNextColor();
     readToBufferFromSimulatedTerminal(prompt, line12, MAX_INPUT_LENGTH);
-    // (the simulated console always assumes prompt fits on one line, as it is unable to break it in the middle)
+    // (the simulated console always assumes prompt fits on one line, as it is unable to intentionally break it in the middle)
 #endif
     colorNormal();
     for (i = strlen(line12) - 1; i >= 0 && (line12[i] == '\r' || line12[i] == '\n'); i--)
@@ -1033,9 +1070,10 @@ private str HighScoreFilePath()
 }
 
 
+// We don't care about the file format here, we just persist it.  See lugi.c for what's in it.
 PUBLIC str LoadScoreFile(void)
 {
-    static char contents[2048];
+    static char contents[4096];
 #ifndef __EMSCRIPTEN__
     FILE *fp;
     size_t c;
@@ -1043,18 +1081,18 @@ PUBLIC str LoadScoreFile(void)
     fp = fopen(scorepath, "r");
 //if (!fp) printfDebug("score file %s not found, errno is %d\n", scorepath, errno);
     if (!fp) return null;
-    c = fread(contents, 1, 2048, fp);
+    c = fread(contents, 1, 4096, fp);
 //printfDebug("score file contained %d bytes\n", c);
     contents[c] = '\0';
     fclose(fp);
 #else
-    readToBufferFromLocalStorage("scores", contents, sizeof(contents));
+    readScoresToBufferFromLocalStorage(contents, sizeof(contents));
 #endif
     return contents;
 }
 
 
-PUBLIC str SaveScoreFile(str contents)
+PUBLIC void SaveScoreFile(str contents)
 {
 #ifndef __EMSCRIPTEN__
     FILE *fp;
@@ -1064,30 +1102,76 @@ PUBLIC str SaveScoreFile(str contents)
         fclose(fp);
     }
 #else
-    writeToLocalStorage("scores", contents);
+    writeScoresToLocalStorage(contents);
 #endif
-    return null;     // indicates succcess
 }
 
+
+PUBLIC bool ScoreDatabaseAvailable()
+{
+#ifdef __EMSCRIPTEN__
+    return checkDatabaseAccess();
+#else
+    return false;
+#endif
+}
+
+
+PUBLIC bool WillScoreNeedUserName(int score)
+{
+#ifdef __EMSCRIPTEN__
+    return checkIfUserNameNeeded(score);
+#else
+    return false;
+#endif
+}
+
+
+PUBLIC void RememberUserName(str username)
+{
+#ifdef __EMSCRIPTEN__
+    cacheUserNameInLocalStorage(username);
+#endif
+}
+
+
+PUBLIC str GetScoresFromDatabaseAfterUpdate(str who, struct tm when, int32 howmuch, int32 *yearplace, int32 *alltimeplace, int32 *bottomplace)
+{
+#ifdef __EMSCRIPTEN__
+    static char contents[4096];  // max 14*288 - names nay contain 64 four-byte chars
+    saveToServerReturningScoresToBuffer(who, when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec,
+                                        howmuch, contents, sizeof(contents), yearplace, alltimeplace, bottomplace);
+logToBrowserConsole("returned scores", contents);
+    return contents;
+#else
+    return null;
+#endif
+}
 
 
 PUBLIC str UserName()
 {
-
 #ifdef WINDOWS
-    static char un[258];
-    DWORD ln = 258;
+    static char un[USERNAMELEN];
+    DWORD ln = USERNAMELEN;
     return GetUserNameA(un, &ln) ? un : "";
-#else
-
-#  ifdef POZZIX
-    struct passwd *p = getpwuid(getuid());
-    return p ? p->pw_name : "";
-#  else
-    return "";
-#  endif
-
+    // if your login name is too long, you lose and this returns nothing
 #endif
+#ifdef POZZIX
+    struct passwd *p = getpwuid(getuid());
+    return p && strlen(p->pw_name) < USERNAMELEN ? p->pw_name : "";
+    // again, too long = you lose
+#endif
+#ifdef __EMSCRIPTEN__
+    static char un[USERNAMELEN];
+    getCachedUserNameFromLocalStorage(un, USERNAMELEN);
+    return un;
+    // in this case the name is typed in by the player, with full utf8 supported,
+    // and long names are truncated safely here at the last codepoint that fits...
+    // but note that the back end score storage does its own different truncation,
+    // which on paulkienitz.net is 64 codepoints... this must not out-truncate that
+#endif
+    return "";     // not applicable on single-user systems
 }
 
 
@@ -1098,7 +1182,7 @@ PUBLIC str UserName()
 #  include <workbench/startup.h>
 #  include <clib/icon_protos.h>
 
-/* these two functions get called before main does */
+/* _wb_parse gets called before main does, if launched from an icon */
 
 extern int _argc, Enable_Abort;
 
@@ -1109,6 +1193,7 @@ void _wb_parse(me, wbm) register struct Process *me; struct WBStartup *wbm;
     import BPTR Open(str, long);
     import void *OpenLibrary(str, uint32), CloseLibrary(struct Library*);
     import void FreeDiskObject(struct DiskObject*);
+    // the default console to open fits on the minimum size workbench:
     str winspec = "CON:0/2/640/198/ the game of LUGI ", cp;
     struct DiskObject *dop = null;
     register BPTR wind;

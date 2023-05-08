@@ -192,7 +192,7 @@ PUBLIC void MakeMap(void)          /* call when starting game */
         a = map[rix].features;
         if (a < 32 && bit(a) & floorMask)
             map[rix].paths[drec(vjump)] = nowhere;          // many rooms cannot have openings in floor
-        if (a == meadow || a == cube)
+        if (a == meadow || a == streetlight || a == cube)
             map[rix].paths[drec(vclimb)] = nowhere;         // never climbable
         if (a == drydock)
             map[rix].paths[drec(vclimb)] = Distant(rix);    // always climbable
@@ -235,6 +235,18 @@ PUBLIC void MakeMap(void)          /* call when starting game */
             a = map[thingroom].features;
         } while (a < 32 && bit(a) & abnormalMask);
     else thingroom = nowhere;
+
+    for (m = firstobject; m <= lastobject; m++)
+        if (bit(m) & randObMask) {
+            do {
+                rix = Distant(m == ohammer ? guardroom :
+                              m == ofeather ? thingroom :
+                              m == osandwich ? gorroom :
+                              nowhere);
+                a = map[rix].features;
+            } while (a == cistern || a == tank || a == ghost || a == meadow || (m == omatch && a == garden));
+            location[m] = rix;
+        } else location[m] = nowhere;
 #else
     SetLoadRange(1, nrooms);
     RemovePlaceAppearances(bit(ghost));
@@ -254,21 +266,20 @@ PUBLIC void MakeMap(void)          /* call when starting game */
             if (!map[gorroom].paths[i])
                 map[gorroom].paths[i] = Distant(gorroom);
     location[osandwich] = TakeOneDistantPlace(gorroom);
+    for (m = firstobject; m <= lastobject; m++)
+        if (bit(m) & randObMask && !location[m]) {
+            do {
+                rix = Distant(nowhere);
+                a = map[rix].features;
+            } while (a == cistern || a == tank || a == ghost || a == meadow || (m == omatch && a == garden));
+            location[m] = rix;
+        }
 #endif
 
     gleepct[incentrifuge] = 100 + RRand(40);
     gleepct[intrunk] = 60 + RRand(30);    
     gleepct[inbag] = RRand(4) + 3;
-    for (m = firstobject; m <= lastobject; m++)
-        if (bit(m) & randObMask && !location[m]) {
-            do {
-                rix = Distant(m == ohammer ? guardroom :
-                              m == osandwich ? gorroom :
-                              m == ofeather ? thingroom : nowhere);
-                a = map[rix].features;
-            } while (a == cistern || a == tank || a == ghost);
-            location[m] = rix;
-        } else location[m] = nowhere;
+
     location[oflask] = pniche;         /* NOT inniche! */
     location[ostatuette] = onarcshelf;
     location[oacetone] = ingalloncan;
@@ -675,6 +686,7 @@ PUBLIC void PunkinEater(void)
     else if (bogusword && *bogusword) verb = mignore, verbword = bogusword;
     else AskCommand("\n\n[][] Name the place, object, or being to summon:  ");
     colorDebug();
+    cheated = true;
     did = false;
     if (verb <= lastobject) {    // this can recreate dispersed liquids:
         SummonObject(verb);
@@ -761,6 +773,10 @@ PUBLIC void PunkinEater(void)
             colorDebug();
             puts("I hope this helps.");
             break;
+        case fbooks:
+            puts("Cheating?  I didn't see any cheating...");
+            cheated = false;
+            break;
         case fliquid:    // our special reserve blend
             if (location[ogalloncan] != pockets) location[ogalloncan] = yourroom;
             location[opills] = ingalloncan;
@@ -795,7 +811,6 @@ PUBLIC void PunkinEater(void)
                 if (recognized) puts("Sorry, that room isn't present in the current map.");
                 else puts("Not recognized.");
     }
-    cheated = true;
     if (destination)
         yourroom = destination, env = map[yourroom].features;
     colorNormal();

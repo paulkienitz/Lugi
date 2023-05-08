@@ -26,6 +26,10 @@ Maybe check biguation of "cans of lysol and flysol"?
 
         GAMEPLAY BUGS:
 
+Second time picking up sandwich, got sick right away?
+
+We still sometimes have trouble with bad responses to "open it" in cabinet room.
+
 ...Leaving this unfixed: Climb down rope msg should be checked after no way through check.
 
 (TEST new optional 'it'-clearing behavior... later.

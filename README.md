@@ -32,7 +32,7 @@ You may have to tap the display to make the virtual keyboard appear.
 
 I am hosting a playable version of this page **[here](http://paulkienitz.net/Lugi/play.html)**.
 _Be aware that refreshing that page restarts the game._
-It requires a modern browser to run — in particular, the JavaScript engine must support the `async` key word, which wasn’t standardized until 2017, in order to read the user’s commands.
+It requires a modern browser to run — in particular, the JavaScript engine must support the `async` keyword, which wasn’t standardized until 2017, in order to read the user’s commands.
 
 The source code is designed to be easily ported to any platform old or new, though if you’re interested in a retro platform it probably will not fit in something like a Commodore 64 or a CP/M system — an 8088 PC is about as primitive as you’d want to go.
 It’s written in C, though the eighties original was in Pascal.
@@ -58,7 +58,8 @@ In some cases, more than one compiler is supported.
 * The msdos folder only supports Open Watcom with a makefile (another compiler was there in the past but is long gone).
 * The amiga folder only supports Manx Aztec C (sorry, no SAS/C) with a makefile.
 * Finally, the emscripten folder supports emcc with a shell script, which produces a `Lugi.wasm` module accompanied by a `Lugi.js` wrapper.
-There’s also a batch script for those who install emcc in Windows (which is not a practice I would recommend).
+There’s also a batch script for those daring souls who install emcc in Windows.
+This folder also has PHP and SQL scripts for storing high scores on the server.
 
 Each folder also has an executable in the repo.
 In the case of the windows folder, this was produced with the MSVC script.
@@ -69,11 +70,13 @@ In the case of the emscripten folder... fun fact: the .wasm file uploaded here w
 Each executable attempts to load and save high scores in a file within its own home directory.
 In some cases on legacy platforms, it may be unable to determine this directory.
 If this fails in MS-DOS I’m not sure where it might end up — the user’s current directory, maybe.
-If this fails on the Amiga it will use the S: folder, where assorted scripts and configuration files are commonly stored.
+If this fails on the Amiga, or you are running under AmigaDOS 1.x, it will use the S: folder, where assorted scripts and configuration files are commonly stored.
 
-In the case of the web build, high scores are currently stored in a persistent cookie, which is a rather fragile location.
-A way to organize scores online for multiple users has not been worked out yet.
-The Unix and Windows builds can show scores by different usernames sharing the computer, but in practice most are going to be single user.
+In the case of the web build, high scores were originally just stored in a persistent cookie, which is a rather fragile location.
+In the second release, scores are logged in a server-side database, so players going to the same website can compare high scores.
+This requires that the game ask players for a name if they get a high score... and you can use arbitrary unicode characters, such as emojis.
+That name is remembered in a cookie (as are the scores, for a backup if the database goes offline).
+The Unix and Windows builds can show scores by different usernames sharing the computer, but in practice most are going to be single user, unless the game is shared on a local networ.
 
 If targeting another platform not yet covered, the unix version is probably what you should start from, as any system with POSIX stdio should support most of what Lugi does.
 It should be pretty close to working in MacOS, for instance.
@@ -83,4 +86,13 @@ At some point I will publicize the original Pascal source, but that has not been
 The only known copy of the final version is a paper printout I have in a box, which is covered with pencil notes.
 Someday I’d like to get that version uploaded.
 
-Released to the public April 14, 2023.
+Release 2 went out on May 7, 2023.
+The differences from release 1 are:
+* Fixed awful bug where three of the objects would never appear.
+* Minor bug where you could go upwards in a room that's outdoors.
+* The simulated console for the web version now has a rectangular blinking text cursor.
+* That version now has a server-side database with a web-service interface, to store and display high scores.
+* Minor reworking of high score reporting in non-web versions.  One visible change is that high score descriptions are in cyan color.
+* The windows version has a crude icon (taken from the Amiga icon) available, though not compiled into the exe.
+
+Release 1 was made public on April 14, 2023.
