@@ -132,10 +132,11 @@ function checkNameNeeded(int $score)
 {
     global $testmode;
     try {
+        $tm = (int) $testmode;
         $context = '* database connection for name check failed';
         $db = connect();
         $context = '* could not call name check function';
-        $zult = $db->query("select ScoreNeedsName($score, $testmode)");
+        $zult = $db->query("select ScoreNeedsName($score, $tm)");
         $context = '* could not extract name check function return value';
         echo json_encode((bool) ($zult->fetch_row()[0]));
     } catch (Throwable $e) {
@@ -148,17 +149,13 @@ function checkNameNeeded(int $score)
 
 function echoNewToken()
 {
-    global $testmode;
     try {
-        if ($testmode) {
-            $context = '* database connection for token failed';
-            $db = connect();
-            $context = '* could not call token procedure';
-            $zult = $db->query("call CreateToken()");
-            $context = '* could not extract token value';
-            echo json_encode($zult->fetch_row()[0]);
-        } else
-            fail('* not available');
+        $context = '* database connection for token failed';
+        $db = connect();
+        $context = '* could not call token procedure';
+        $zult = $db->query("call CreateToken()");
+        $context = '* could not extract token value';
+        echo json_encode($zult->fetch_row()[0]);
     } catch (Throwable $e) {
         fail($context, $e);
     } finally {
@@ -232,12 +229,12 @@ if ($op == 'addnlist') {
         err("** sc does not parse ($sc)");
     else
         checkNameNeeded((int) $sc);
-} else if ($op == 'gettoken')
+} else if ($op == 'gettoken' && $testmode)
     echoNewToken();
+else if ($op == 'dumpy' && $testmode)
+    dumpServerVars();
 else if ($op == 'testconn')
     testConnect();
-else if ($op == 'dumpy')
-    dumpServerVars();
 else
     err('** operation not recognized');
 

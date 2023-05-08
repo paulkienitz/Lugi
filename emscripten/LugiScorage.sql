@@ -18,7 +18,8 @@ begin
    -- how should we display scores if there are few distinct users?
     select count(*), count(distinct playername) into v_scores, v_namesInUse
       from Scores
-     where istest = p_istest;
+     where istest = p_istest
+       and score > 0;
     if v_scores <= 10 then
         return 10;
     elseif v_namesInUse >= 10 then
@@ -38,16 +39,23 @@ create or replace function ScoreNeedsName(
     p_istest  boolean
 ) returns boolean
 begin
-    declare v_min, v_maxpername  int;
+    declare v_min, v_ct, v_maxpername  int;
 
-    set v_maxpername = EntriesPerName(p_istest);
-    select min(score) into v_min from RanksThisYear
-     where personalrank <= v_maxpername
-       and istest = p_istest
-     order by score desc, whenscored asc
-     limit 10;
+    if p_score <= 0 then
+        return false;
+    else
+        set v_maxpername = EntriesPerName(p_istest);
 
-    return p_score > 0 and (v_min is null or v_min < p_score);
+        select min(score), count(*) into v_min, v_ct
+          from RanksThisYear
+         where personalrank <= v_maxpername
+           and istest = p_istest
+           and score > 0
+         order by score desc, whenscored asc
+         limit 10;
+
+        return v_ct < 10 or v_min < p_score;
+    end if;
 end;
 //
 
