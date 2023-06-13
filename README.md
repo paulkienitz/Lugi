@@ -49,7 +49,7 @@ With this knowledge, it word-wraps the text to fit the current width, and uses �
 In the case of the web target, the actual IO does not go through stdio at all, but through JavaScript functions.
 
 Each target platform has a subdirectory in the source archive, but these do not contain any .c or .h source files.
-They only contain makefiles or scripts for building an executable for that target.
+They just contain makefiles or scripts for building an executable for that target, and a resulting executable.
 In some cases, more than one compiler is supported.
 
 * The unix folder has simple shell scripts to build with gcc, with clang, or with tcc.
@@ -59,13 +59,14 @@ In some cases, more than one compiler is supported.
 * The amiga folder only supports Manx Aztec C (sorry, no SAS/C) with a makefile.
 * Finally, the emscripten folder supports emcc with a shell script, which produces a `Lugi.wasm` module accompanied by a `Lugi.js` wrapper.
 There’s also a batch script for those daring souls who install emcc in Windows.
-This folder also has PHP and SQL scripts for storing high scores on the server.
 
 Each folder also has an executable in the repo.
 In the case of the windows folder, this was produced with the MSVC script.
 In the case of the unix folder, this was produced with the clang script, with the implicit target being `x86_64-pc-linux-gnu`.
 (A target of `aarch64-unknown-linux-android24` has also been tested.)
 In the case of the emscripten folder... fun fact: the .wasm file uploaded here was actually compiled on my phone, not my PC, though that should make no difference to the result.
+The emscripten folder also includes a `play.php` host page to run the .wasm module from.
+The host page uses the audio sample `hiding.wav` (with `beep-08b.wav` available as an alternative).
 
 Each executable attempts to load and save high scores in a file within its own home directory.
 In some cases on legacy platforms, it may be unable to determine this directory.
@@ -76,6 +77,9 @@ In the case of the web build, high scores were originally just stored in a persi
 In the second release, scores are logged in a server-side database, so players going to the same website can compare high scores.
 This requires that the game ask players for a name if they get a high score... and you can use arbitrary unicode characters, such as emojis.
 That name is remembered in a cookie (as are the scores, for a backup if the database goes offline).
+Supporting this feature requires creating a MySQL or MariaDB database, creating tables and functions in it with the files `tables.sql` and `LugiScorage.sql`, and deploying the service pages `LugiScorage.php` and `LugiDB.php`.
+(The latter must be configured with your database’s credentials.
+If there is no database, a dummy `LugiDB.php` is still required.)
 The Unix and Windows builds can show scores by different usernames sharing the computer, but in practice most are going to be single user, unless the game is shared on a local networ.
 
 If targeting another platform not yet covered, the unix version is probably what you should start from, as any system with POSIX stdio should support most of what Lugi does.
