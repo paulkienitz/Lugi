@@ -80,7 +80,7 @@ That name is remembered in a cookie (as are the scores, for a backup if the data
 Supporting this feature requires creating a MySQL or MariaDB database, creating tables and functions in it with the files `tables.sql` and `LugiScorage.sql`, and deploying the service pages `LugiScorage.php` and `LugiDB.php`.
 (The latter must be configured with your database’s credentials.
 If there is no database, a dummy `LugiDB.php` is still required.)
-The Unix and Windows builds can show scores by different usernames sharing the computer, but in practice most are going to be single user, unless the game is shared on a local networ.
+The Unix and Windows builds can show scores by different usernames sharing the computer, but in practice most are going to be single user, unless the game is shared on a local network.
 
 If targeting another platform not yet covered, the unix version is probably what you should start from, as any system with POSIX stdio should support most of what Lugi does.
 It should be pretty close to working in MacOS, for instance.
