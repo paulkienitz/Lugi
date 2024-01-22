@@ -311,7 +311,7 @@ private void TopTen(int32 currentscore)
 {
     import bool ScoreDatabaseAvailable();
     import int Width(void);
-    Score topyear[10], topalltime[3], bottom[1];
+    Score *topyear, *topalltime, *bottom;
     time_t t = time(null);
     struct tm now;
     int32 yearplace, alltimeplace, bottomplace;
@@ -319,9 +319,9 @@ private void TopTen(int32 currentscore)
     char a;
 
     now = *localtime(&t);
-    memset(&topyear, 0, sizeof(topyear));
-    memset(&topalltime, 0, sizeof(topalltime));
-    memset(&bottom, 0, sizeof(bottom));
+    topyear    = calloc(10, sizeof(Score));
+    topalltime = calloc( 3, sizeof(Score));
+    bottom     = calloc( 1, sizeof(Score));
 
     if (ScoreDatabaseAvailable())
         SaveTopTenToServer(cheated ? currentscore + 10000000 : currentscore, now,

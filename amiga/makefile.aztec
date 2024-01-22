@@ -13,7 +13,10 @@ ZOB = $(O)basics.o $(O)diction.o $(O)embassy.o $(O)player.o $(O)roomz.o \
             $(O)upchuck.o $(O)obey.o $(O)lugi.o
 
 ram\:Lugi : amiga/Lugi
-	-copy quiet amiga/Lugi amiga/Lugi.dbg amiga/Lugi-high-scores.txt ram:
+	-@copy quiet amiga/Lugi ram:
+	-@copy quiet amiga/Lugi.dbg ram:
+	-@copy quiet amiga/Lugi-high-scores.txt ram:
+	-@list ram:Lugi
 
 amiga/Lugi : $(ZOB)
 	ln -WG +q -m +s -o amiga/Lugi $(ZOB) -lc16
@@ -30,5 +33,7 @@ $(O)basics.o : basics.c
 	cc -dAMIGA $(CFLAGS) basics -o $(O)basics.o
 
 clean:
-	-delete quiet amiga/Lugi amiga/Lugi.dbg Lugi Lugi.dbg ram:Lugi ram:Lugi.dbg
-	-delete quiet $(O)\#?.o $(O)\#?.sym
+	-@delete quiet amiga/Lugi amiga/Lugi.dbg
+	-@delete quiet Lugi Lugi.dbg
+	-@delete quiet ram:Lugi ram:Lugi.dbg
+	-@delete quiet $(O)\#?.o $(O)\#?.sym
