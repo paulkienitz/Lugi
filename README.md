@@ -100,3 +100,7 @@ The differences from release 1 are:
 * The windows version has a crude icon (taken from the Amiga icon) available, though not compiled into the exe.
 
 Release 1 was made public on April 14, 2023.
+
+...What’s in the future for Lugi?
+I’m thinking about porting it to Rust, just for practice with that language.
+This is something I’ve done before when studying languages, though none of those versions got to a released state.
