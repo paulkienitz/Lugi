@@ -25,7 +25,7 @@ This page is included in the repo as play.html in the emscripten folder.
 (The page referenced by the "about the game" link in it is not included.
 That page's content is similar to the About the Game section you are now reading.)
 You can resize this page and the text display will expand or shrink (within reasonable limits) to fit it.
-If the game produces lengthy output that doesn't fit, it will pause and display “`-- MORE --`” at the bottom in inverse colors.
+If the game produces lengthy output that doesn't fit, it will pause and display `-- MORE --` at the bottom in inverse colors.
 If this happens, just press any key once you are ready to read the rest.
 When viewed on a phone, the font may be rather small, but hopefully is still readable enough.
 You may have to tap the display to make the virtual keyboard appear.
@@ -34,13 +34,13 @@ I am hosting a playable version of this page **[here](http://paulkienitz.net/Lug
 _Be aware that refreshing that page restarts the game._
 It requires a modern browser to run — in particular, the JavaScript engine must support the `async` keyword, which wasn’t standardized until 2017, in order to read the user’s commands.
 
+##      About the Code
+
 The source code is designed to be easily ported to any platform old or new, though if you’re interested in a retro platform it probably will not fit in something like a Commodore 64 or a CP/M system — an 8088 PC is about as primitive as you’d want to go.
 It’s written in C, though the eighties original was in Pascal.
 Much of the C translation was done in the early nineties, but it wasn’t finished then.
 I will ask that you please don’t read the source code just to figure out the tricks in the game.
-Lots of players back then discovered them through gameplay (it was pretty popular), and one or two even outplayed me at it.
-
-##      About the Code
+Lots of players back then discovered them through gameplay (it was pretty popular within its limited distribution), and one or two even outplayed me at it.
 
 The basic design idea of the source archive is that everything is platform-independent, except for a primitive layer in the file `basics.c`, and a few conditionals in the `lugi.h` include file.
 In `basics.c` we actually redefine some familiar stdio functions to pass them through our own output stream, which knows how to check the window it's running in for width, height, and ANSI color support.
@@ -64,7 +64,7 @@ Each folder also has an executable in the repo.
 In the case of the windows folder, this was produced with the MSVC script.
 In the case of the unix folder, this was produced with the clang script, with the implicit target being `x86_64-pc-linux-gnu`.
 (A target of `aarch64-unknown-linux-android24` has also been tested.)
-In the case of the emscripten folder... fun fact: the .wasm file uploaded here was actually compiled on my phone, not my PC, though that should make no difference to the result.
+In the case of the emscripten folder... fun fact: the .wasm file uploaded here for the initial release was actually compiled on my phone, not my PC, though that should make no difference to the result.
 The emscripten folder also includes a `play.php` host page to run the .wasm module from.
 The host page uses the audio sample `hiding.wav` (with `beep-08b.wav` available as an alternative).
 
