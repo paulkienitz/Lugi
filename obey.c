@@ -225,7 +225,7 @@ private void StartIt(void)
     }
     if (env == driverseat || env == car) {
         if (Have(okeys)) {
-            if (env== car)
+            if (env == car)
                 puts("You get inside...\n");
             if (location[onitro] == intrunk) {
                 puts("GrrrRRRrrrRRRrrr--VAROOOM!  Unexpectedly, the car lurches sharply forward...");
@@ -271,7 +271,8 @@ private void FullInv(void)
     }
     puts("You are carrying:");
     Inventory(pockets);
-    if (attached) puts("\nThere is a scaly thing on your leg.");
+    if (attached)
+        puts("\nThere is a scaly thing on your leg.");
     if (beastfollowing)
         puts("\nA big ugly animal is following you around.");
     if (fungus) puts(
@@ -279,8 +280,10 @@ private void FullInv(void)
     if (strong && !sickness)
         puts("\nYou have three times your normal strength.");
     else if (sickness) {
-        if (strong) put("\nYou have super strength, but you ");
-        else put("\nYou ");
+        if (strong)
+            put("\nYou have super strength, but you ");
+        else
+            put("\nYou ");
         switch (sickness) {
             case mild:  puts("are a bit queasy."); break;
             case moderate:  puts("are rather sick."); break;

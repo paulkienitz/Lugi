@@ -93,9 +93,9 @@ Someday I’d like to get that version uploaded.
 Release 2 went out on May 7, 2023.
 The differences from release 1 are:
 * Fixed awful bug where three of the objects would never appear.
-* Minor bug where you could go upwards in a room that's outdoors.
+* Fixed minor bug where you could go upwards in a room that's outdoors.
 * The simulated console for the web version now has a rectangular blinking text cursor.
-* That version now has a server-side database with a web-service interface, to store and display high scores.
+* Now has a server-side database with a web-service interface, to store and display high scores.
 * Minor reworking of high score reporting in non-web versions.  One visible change is that high score descriptions are in cyan color.
 * The windows version has a crude icon (taken from the Amiga icon) available, though not compiled into the exe.
 

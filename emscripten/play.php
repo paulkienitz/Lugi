@@ -17,6 +17,7 @@ try {
 <head>
     <meta name='viewport' content='width=device-width, initial-scale=1, minimum-scale=1'/>
     <meta charset="UTF-8">
+    <!-- link rel='canonical' href='https://paulkienitz.net/Lugi/play.php' / -->
     <title>the game of Lugi</title>
 
     <style>

@@ -3,11 +3,12 @@
    contains system dependent stuff.  Note that we do not include stdio.h
    in any other source files; they use only functions defined here. */
 
-/* Define AMIGA, WINDOWS, etc to select code here for a target platform.
+/* Define AMIGA, WINDOWS, etc to select code here for a target platform, or
+   make use of the built-in define names that your compiler defines for you.
    Create other ifdefs as necessary for sections specific to other machines,
    if you port this.  Define CRLF for machines that need \r\n for newline.
-   To deactivate the --More -- pausing feature, use a do-nothing function
-   for CheckWindowSize. */
+   To deactivate or avoid supporting the --More -- pausing feature, use a
+   do-nothing function for CheckWindowSize. */
 
 #include <string.h>
 #include <stdlib.h>
@@ -23,10 +24,11 @@
 #include "lugi.h"
 
 #ifdef AMIGA
-   // Note that the compiler should target AmigaDOS 1.x on a plain 68k, as 1.x was
-   // probably sold on the majority of computers and most of them still have old roms. 
-   // Also note that sometimes there are blank lines around #ifs and #endifs, due to
-   // a bug in Aztec C that can fail to match them... somehow this is a workaround.
+   // XXX TODO:  SUPPORT SAS/C AS WELL AS AZTEC.
+   // Note that the compiler needs to target AmigaDOS 1.x on a plain 68k, as 1.x
+   // was sold on the majority of computers and most of them still have old roms. 
+   // Also note that sometimes there are blank lines around #ifs and #endifs, as a
+   // workaround for bug in Aztec C that can otherwise fail to match them correctly.
 #  include <exec/io.h>
 #  include <devices/conunit.h>
 #  include <libraries/dosextens.h>
@@ -204,7 +206,6 @@ char localshellwords[] = "shell";
 unsigned RRand(unsigned range)
 {
     register unsigned r = (unsigned) rand();
-    if (!range) range = 1;
     return r % range;
 }
 
@@ -212,7 +213,6 @@ unsigned RRand(unsigned range)
 uint32 RRand32(uint32 range)
 {
     register uint32 r = (((uint32) rand() << 16) | (unsigned) rand());
-    if (!range) range = 1;
     return r % range;
 }
 #endif
@@ -227,7 +227,8 @@ void Randomize(void)
 /* returns a random direction from vnorth..d (e.g. vnorth..vwest) */
 Meaning RandDirection(Meaning d)
 {
-    if (d > vclimb) d = vclimb;
+    if (d > vclimb)
+        d = vclimb;
     return (Meaning) (RRand((int) d - (int) vnorth + 1) + (int) vnorth);
 }
 
@@ -235,8 +236,10 @@ Meaning RandDirection(Meaning d)
 /* When D is in vnorth..vclimb, this returns the opposite direction */
 Meaning Opposite(Meaning d)
 {
-    if (drec(d) & 1) return d - 1;
-    else return d + 1;
+    if (drec(d) & 1)
+        return d - 1;
+    else
+        return d + 1;
 }
 
 
@@ -326,15 +329,18 @@ private bool paws = true;
 
 
 // seconds elapsed since StartTimer() called... whole-second roundoff means that when you check if say
-// 5 seconds have elapsed, it in practice tests for a slightly random duration between 4 and 6 seconds
+// 5 seconds have elapsed, it in practice may test for a slightly random duration between 4 and 6 seconds
 Seconds Timer(void)
 {
     register Seconds t;
-    if (paws) return startime;
+    if (paws)
+        return startime;
     else {
         t = (Seconds) time(null) - startime;
-        if (t < 0) return 0;
-        else return t;
+        if (t < 0)
+            return 0;
+        else
+            return t;
     }
 }
 
@@ -379,7 +385,7 @@ private bool haveCheckedAnsi = false;
 #define ENDLESS 9999
 
 private ushort linesout = 0;
-private int ansiColorBits = 0;  // 0 = no ansi or color, 1 = monochrome ansi, 2 - 8 = 4 to 256 colors (don't bother with rgb), -1 = use CSS classes
+private int ansiColorBits = 0;  // 0 = no ansi or color, 1 = monochrome ansi, 2|4|8 = 4|16|256 colors (don't bother with rgb), -1 = use CSS classes
 
 private str argpath = null, scorepath = null;
 private void *oldCurDir = null;
@@ -419,13 +425,13 @@ private short bound = 0, lined = 0;
 
 private HANDLE outHandle = (HANDLE) 0;
 private DWORD consoleMode = (DWORD) -1;
-#  define ScrollPause() Sleep(12)
+#  define ScrollPause()  Sleep(12)
 
 #endif
 
 #ifdef POZZIX
 
-#  define ScrollPause() usleep(12000)
+#  define ScrollPause()  usleep(12000)
 
 #endif
 
@@ -436,7 +442,7 @@ private DWORD consoleMode = (DWORD) -1;
 #endif
 
 #ifndef ScrollPause
-#  define ScrollPause() ((void) 0)
+#  define ScrollPause() ((void) 0)          // legacy systems are slow enough on their own
 #endif
 
 private void CheckWindowSize()
@@ -451,8 +457,7 @@ private void CheckWindowSize()
 
     if (!cu && (ind = AllocMem((long) sizeof(struct InfoData), 0L))) {
         me = FindTask(null);    /* first time only */
-        if (dos_packet(me->pr_ConsoleTask,
-                       (long) ACTION_DISK_INFO, (long) ind >> 2))
+        if (dos_packet(me->pr_ConsoleTask, (long) ACTION_DISK_INFO, (long) ind >> 2))
             cu = (void *) ((struct IOStdReq *) ind->id_InUse)->io_Unit;
         else
             cu = (void *) -1;   /* probly output redirected away from console */
@@ -520,8 +525,9 @@ private void CheckWindowSize()
         windowwidth = vc.numtextcols - 1;
         windowheight = vc.numtextrows - 1;
     }
-    if (!haveCheckedAnsi) {
-        while (kbhit()) getch();
+    if (!haveCheckedAnsi) {                 // only way to tell is to try some ANSI
+        while (kbhit())
+            getch();
         fputs("\n\x1B[6n", stdout);
         fflush(stdout);
         for (t = 0; t < 5 && !kbhit(); t++)
@@ -533,9 +539,11 @@ private void CheckWindowSize()
                 if (c == '[')
                     ansiColorBits = vc.monitor == _MONO || vc.monitor == _ANALOGMONO ? 1 : 4;
             }
-            while (kbhit()) getch();           // flush
+            while (kbhit())
+                getch();                    // flush
         }
-        if (!ansiColorBits) fputs("\r         \r", stdout);
+        if (!ansiColorBits)
+            fputs("\r         \r", stdout);
         haveCheckedAnsi = true;
     }
 #endif
@@ -554,7 +562,7 @@ private void WaitForKey()
 {
 #ifdef AMIGA
     char x[4];
-    set_raw();                  // for SAS C this will need a local version
+    set_raw();                  // for SAS C this will need something else
     Delay(10L);                 // 0.2 sec
     fread(&x, 1, 1, stdin);
     set_con();
@@ -598,10 +606,10 @@ void flushw()
     fflush(stdout);
 #endif
     if (bound > 0 && bout[bound - 1] == '\n')
-        ScrollPause();   // scroll slow enough to follow visually
+        ScrollPause();      // scroll slow enough to follow visually
     bound = 0;
 #ifdef AZTEC_C
-    Chk_Abort();            /* hear control-C during long output */
+    Chk_Abort();            // hear control-C during long output
 #endif
 }
 
@@ -676,7 +684,8 @@ PUBLIC int putchar(int ch)
                 top = bound;    // find end of word:
                 while (bound >= 0 && bout[--bound] != ' ') ;
                 while (bound >= 0 && bout[--bound] == ' ') ;
-                if (bound < 0) bound = lined > 0 ? 0 : top - 1;
+                if (bound < 0)
+                    bound = lined > 0 ? 0 : top - 1;
                 else bound++;
 #ifdef CRLF
                 r = bout[bound];
@@ -692,7 +701,8 @@ PUBLIC int putchar(int ch)
 #ifdef CRLF
                 bout[--i] = r;
 #endif
-                while (i <= top && bout[i] == ' ') i++;
+                while (i <= top && bout[i] == ' ')
+                    i++;
                 for (bound = 0; bound < top - i; bound++)
                     bout[bound] = bout[bound + i], lined++;
                 spaceat = !bound;
@@ -719,8 +729,8 @@ PUBLIC int putchar(int ch)
 
 /* the following two definitions are basically redundant for some compilers
 ... for Aztec this nearly duplicates the library definitions (actually they
-use something called aputc which putchar also calls), but so what, we do them
-explicitly anyway ... makes debugging easier. */
+use something called aputc which putchar also calls), but we do them explicitly
+because it makes debugging easier. */
 
 PUBLIC void put(register const char* s)
 {
@@ -995,9 +1005,11 @@ private str ReplaceTail(str buf, str newtail)
     p = strrchr(buf, '/');
 #endif
 #if !defined(__unix__) && !defined(__EMSCRIPTEN__)
-    if (!p) p = strrchr(buf, ':');
+    if (!p)
+        p = strrchr(buf, ':');
 #endif
-    if (!p) return newtail;
+    if (!p)
+        return newtail;
     *++p = '\0';
     strcpy(p, newtail);
     return buf;
@@ -1039,9 +1051,12 @@ private str HighScoreFilePath()
             if (p > newcdbuf) {
                 *p = 0;
                 SetCurrentDirectory(newcdbuf);
-            } else oldCurDir = null;
-        } else oldCurDir = null;
-    } else oldCurDir = null;
+            } else
+                oldCurDir = null;
+        } else
+            oldCurDir = null;
+    } else
+        oldCurDir = null;
     if (oldCurDir)
         return hope;
 #endif
@@ -1080,7 +1095,8 @@ PUBLIC str LoadScoreFile(void)
     scorepath = HighScoreFilePath();
     fp = fopen(scorepath, "r");
 //if (!fp) printfDebug("score file %s not found, errno is %d\n", scorepath, errno);
-    if (!fp) return null;
+    if (!fp)
+        return null;
     c = fread(contents, 1, 4096, fp);
 //printfDebug("score file contained %d bytes\n", c);
     contents[c] = '\0';
@@ -1141,7 +1157,7 @@ PUBLIC str GetScoresFromDatabaseAfterUpdate(str who, struct tm when, int32 howmu
     static char contents[4096];  // max 14*288 - names nay contain 64 four-byte chars
     saveToServerReturningScoresToBuffer(who, when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec,
                                         howmuch, contents, sizeof(contents), yearplace, alltimeplace, bottomplace);
-logToBrowserConsole("returned scores", contents);
+//logToBrowserConsole("returned scores", contents);
     return contents;
 #else
     return null;
@@ -1194,6 +1210,7 @@ void _wb_parse(me, wbm) register struct Process *me; struct WBStartup *wbm;
     import void *OpenLibrary(str, uint32), CloseLibrary(struct Library*);
     import void FreeDiskObject(struct DiskObject*);
     // the default console to open fits on the minimum size workbench:
+    // XXX TODO: add a tooltype to set the window specification
     str winspec = "CON:0/2/640/198/ the game of LUGI ", cp;
     struct DiskObject *dop = null;
     register BPTR wind;
@@ -1205,8 +1222,10 @@ void _wb_parse(me, wbm) register struct Process *me; struct WBStartup *wbm;
                 winspec = cp;
     if (wind = Open(winspec, (long) MODE_OLDFILE))
         pwind = (void *) (wind << 2);
-    if (dop) FreeDiskObject(dop);
-    if (IconBase) CloseLibrary(IconBase);
+    if (dop)
+        FreeDiskObject(dop);
+    if (IconBase)
+        CloseLibrary(IconBase);
     IconBase = null;
     me->pr_CIS = wind;
     if (wind && (me->pr_ConsoleTask = (void *) (pwind->fh_Type)))
@@ -1216,7 +1235,8 @@ void _wb_parse(me, wbm) register struct Process *me; struct WBStartup *wbm;
             DisplayBeep(null);
             CloseLibrary(IntuitionBase);
         }
-        if (wind) Close(wind);
+        if (wind)
+                Close(wind);
         exit(10);
     }
     _argc = 0;
@@ -1250,6 +1270,8 @@ PUBLIC void local_startup(str argv0)
 
 #ifdef AMIGA
     Enable_Abort = true;
+    // The control-C interrupt in Aztec C only takes effect when you hit enter on a line of input --
+    // it fails to interrupt the program immediately.  This behavior is baked into the OS's console read.
 #endif
 }
 
@@ -1262,11 +1284,13 @@ PUBLIC void local_shutdown()
 #endif
 
 #ifndef __EMSCRIPTEN__
-    if (ansiColorBits > 0) fputs("\x1B[0m", stdout), fflush(stdout);
+    if (ansiColorBits > 0)
+        fputs("\x1B[0m", stdout), fflush(stdout);
 #endif
 
 #ifdef AMIGA
-    if (oldCurDir) CurrentDir((BPTR) oldCurDir);
+    if (oldCurDir)
+        CurrentDir((BPTR) oldCurDir);
     // do like this on any system which can open a console window for an app launched GUI-wise:
     if (!_argc) {
         put(ansiColorBits ?
@@ -1278,8 +1302,10 @@ PUBLIC void local_shutdown()
 #endif
 
 #ifdef WINDOWS
-    if (oldCurDir) SetCurrentDirectory(oldCurDir);
-    // ### BUG: THIS DOES NOT WORK IN WATCOM, it thinks it's in a popup when it's not
+    // XXX TODO: make a better icon, and compile it into the exe
+    if (oldCurDir)
+        SetCurrentDirectory(oldCurDir);
+    // ### BUG, WATCOM ONLY: this does not work, it thinks it's in a popup when it's not
     if (GetConsoleProcessList(&process, 1) <= 1) {
         put(ansiColorBits ?
             "\n                    \x1B[7m-- PRESS ANY KEY TO ERASE WINDOW --\x1B[0m " :
@@ -1292,7 +1318,10 @@ PUBLIC void local_shutdown()
 #endif
 
 #ifdef POZZIX
-    if (oldCurDir) chdir(oldCurDir);
+    if (oldCurDir)
+        chdir(oldCurDir);
+    // XXX TODO: if Lugi can be run from an icon that opens a terminal window,
+    //           detect that and close the window with a prompt, like the other OSes
 #endif
 
 #ifdef __EMSCRIPTEN__

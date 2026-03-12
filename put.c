@@ -424,7 +424,7 @@ PUBLIC void PutThem(void)
         }
         for (ob = firstobject; ob <= lastobject && !death; ob++)
             if ((Have(ob) || Here(ob)) && ob == Jug(ob) && location[ob] != goal && container[ob] != goal
-                                       && !(location[ob] == incar && yourroom != driverseat)) {
+                                       && !(location[ob] == incar && yourroom != incar)) {
                 Nominate(ob);
                 PutThisThere(ob, goal);
             }
