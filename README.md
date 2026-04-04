@@ -53,6 +53,8 @@ They just contain makefiles or scripts for building an executable for that targe
 In some cases, more than one compiler is supported.
 
 * The unix folder has simple shell scripts to build with gcc, with clang, or with tcc.
+(Note that the colors it displays will only look good in a dark-mode terminal.
+A future goal would be to make it adapt to your terminal’s background.)
 * The windows folder has a batch script for MSVC, a makefile for Open Watcom, and a Visual Stupido project.
 (It also has a batch script for TCC, but this is currently broken as it does not support the Windows APIs needed for console analysis.)
 * The msdos folder only supports Open Watcom with a makefile (another compiler was there in the past but is long gone).
