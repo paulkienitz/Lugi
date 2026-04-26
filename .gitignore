@@ -1,5 +1,6 @@
 *.log
 *.o
+*.uaem
 *.obj
 .vs/
 obj/
